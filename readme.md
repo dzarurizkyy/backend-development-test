@@ -11,6 +11,18 @@ A simple API system for managing terminals, gates, transactions, and admin authe
   git clone https://github.com/dzarurizkyy/backend-development-test
   ```
 
+- <h3>Create Database</h3>
+
+  ```
+  create database your_db_name
+  ```
+
+- <h3>Create Tables</h3>
+
+  ```
+  psql -U your_db_user -d your_db_name -f database/table.sql
+  ```
+
 - <h3>Configure Database and JWT in `config/config.yml`</h3>
 
   ```
@@ -25,11 +37,7 @@ A simple API system for managing terminals, gates, transactions, and admin authe
   secret: your_jwt_secret
   ```
 
-- <h3>Create Database and Tables</h3>
 
-  ```
-  psql -U your_db_user -d your_db_name -f database/table.sql
-  ```
 
 - <h3>Install Dependencies</h3>
 
