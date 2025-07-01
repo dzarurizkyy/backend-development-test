@@ -6,6 +6,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Token   string `json:"token"`
 }

@@ -21,12 +21,17 @@ func Start() {
 	authUsecase := usecase_implement.NewAuthUsecase(adminRepo)
 	authHandler := handler.NewAuthHandler(authUsecase)
 
+	terminalRepo := repository_implement.NewTerminalRepository(db)
+	terminalUsecase := usecase_implement.NewTerminalUsecase(terminalRepo)
+	terminalHandler := handler.NewTerminalHandler(terminalUsecase)
+
 	e := echo.New()
 
 	e.POST("/login", authHandler.Login)
-
+	
 	api := e.Group("/api")
 	api.Use(middleware.JWTMiddleware())
+	api.POST("/terminal", terminalHandler.CreateTerminal)
 
 	e.Logger.Fatal(e.Start(":8080"))
 

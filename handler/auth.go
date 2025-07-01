@@ -22,13 +22,13 @@ func (a *AuthHandler) Login(c echo.Context) error {
 	var req dto.LoginRequest
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return c.JSON(http.StatusBadRequest, dto.LoginResponse{Code: http.StatusBadRequest, Message: "invalid request", Token: "null"})
 	}
 
 	token, err := a.Usecase.Login(req.Username, req.Password)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusUnauthorized, dto.LoginResponse{Code: http.StatusUnauthorized, Message: err.Error(), Token: "null"})
 	}
 
-	return c.JSON(http.StatusOK, dto.LoginResponse{Message: "login success", Token: token})
+	return c.JSON(http.StatusOK, dto.LoginResponse{Code: http.StatusOK, Message: "success", Token: token})
 }

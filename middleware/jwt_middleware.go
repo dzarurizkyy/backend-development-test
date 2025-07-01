@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"api-test/config"
+	"api-test/handler/dto"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	echo "github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4"
 )
 
 func JWTMiddleware() echo.MiddlewareFunc {
@@ -14,29 +16,38 @@ func JWTMiddleware() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			auth := c.Request().Header.Get("Authorization")
 			if auth == "" {
-				return echo.NewHTTPError(http.StatusUnauthorized, "missing authorization header")
+				return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
+					Code:    http.StatusUnauthorized,
+					Message: "missing authorization header",
+				})
 			}
 
 			if !strings.HasPrefix(auth, "Bearer ") {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid authorization header format")
+				return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
+					Code:    http.StatusUnauthorized,
+					Message: "invalid authorization header format",
+				})
 			}
 
 			tokenString := strings.TrimPrefix(auth, "Bearer ")
 
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+			claims := jwt.MapClaims{}
+			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, echo.NewHTTPError(http.StatusUnauthorized, "invalid signing method")
+					return nil, fmt.Errorf("unexpected signing method")
 				}
 				return []byte(config.AppConfig.JWT.Secret), nil
 			})
 
-			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+			if err != nil || !token.Valid {
+				return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
+					Code:    http.StatusUnauthorized,
+					Message: "invalid token",
+				})
 			}
 
-			if !token.Valid {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
-			}
+			c.Set("token", token)
+			c.Set("claims", claims)
 
 			c.Set("token", token)
 			if claims, ok := token.Claims.(jwt.MapClaims); ok {
