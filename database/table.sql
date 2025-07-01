@@ -1,21 +1,71 @@
-CREATE TABLE admin (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    fullname VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    card_number VARCHAR UNIQUE NOT NULL,
+    name VARCHAR NOT NULL,
+    balance INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    deleted_at INT,
-    is_deleted BOOLEAN
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at INTEGER DEFAULT 0
 );
 
 CREATE TABLE terminal (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    deleted_at INT,
-    is_deleted BOOLEAN
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at INTEGER DEFAULT 0
+);
+
+CREATE TABLE gate (
+    id SERIAL PRIMARY KEY,
+    terminal_id INTEGER REFERENCES terminal (id),
+    gate_number VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at INTEGER DEFAULT 0
+);
+
+CREATE TABLE transaction (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users (id),
+    gate_id INTEGER REFERENCES gate (id),
+    terminal_id INTEGER REFERENCES terminal (id),
+    timestamp TIMESTAMP NOT NULL,
+    action VARCHAR CHECK (
+        action IN ('checkin', 'checkout')
+    ) NOT NULL,
+    synced BOOLEAN DEFAULT FALSE,
+    fare INTEGER NOT NULL,
+    entry_terminal_id INTEGER REFERENCES terminal (id),
+    exit_terminal_id INTEGER REFERENCES terminal (id)
+);
+
+CREATE TABLE admin (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR UNIQUE NOT NULL,
+    fullname VARCHAR NOT NULL,
+    password VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at INTEGER DEFAULT 0
+);
+
+CREATE TABLE sync_queue (
+    id SERIAL PRIMARY KEY,
+    transaction_id INTEGER REFERENCES transaction (id),
+    retry_count INTEGER DEFAULT 0,
+    last_attempt TIMESTAMP,
+    status VARCHAR CHECK (
+        status IN (
+            'pending',
+            'success',
+            'failed'
+        )
+    ) NOT NULL DEFAULT 'pending'
 );
 
 INSERT INTO
